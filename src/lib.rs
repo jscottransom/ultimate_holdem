@@ -2,6 +2,7 @@ use pyo3;
 use pyo3::prelude::*;
 use std::vec::Vec;
 
+// Build the list of number cards for gameplay
 #[pyfunction]
 pub fn build_number_cards() -> Vec<Card> {
     let mut cards = Vec::new();
@@ -23,6 +24,7 @@ pub fn build_number_cards() -> Vec<Card> {
     cards
 }
 
+// Build the list of face cards for gameplay
 #[pyfunction]
 pub fn build_face_cards() -> Vec<Card> {
     let mut cards = Vec::new();
@@ -43,7 +45,7 @@ pub fn build_face_cards() -> Vec<Card> {
     cards
 }
 
-// Expose the base object to the Python interface. We'll be dealing with cards 
+// Expose the base object to the Python interface. We'll be dealing with cards
 #[pyclass]
 pub struct Card {
     suit: String,
@@ -92,7 +94,7 @@ impl Card {
         };
 
         // We need to deal with Strings allocated on the heap (size unknown at compile time).
-        // So to apply operations, it makes sense to conver to a string slice, then re convert to a 
+        // So to apply operations, it makes sense to conver to a string slice, then re convert to a
         // String type.
         let suit = self.suit.as_str().to_lowercase().to_string();
 
@@ -101,9 +103,15 @@ impl Card {
 
     // Allows for printing to stdout
     fn __repr__(&self) -> String {
-        
         format!("Suit: {}, Value: {}", self.suit, self.value)
     }
+}
+
+// Base object for manipulating actions. This player struct will also act as the dealer
+#[pyclass]
+pub struct Player {
+    first_card: Card,
+    second_card: Card,
 }
 
 /// A Python module implemented in Rust.
