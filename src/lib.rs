@@ -107,12 +107,93 @@ impl Card {
     }
 }
 
-// Base object for manipulating actions. This player struct will also act as the dealer
+// In pure Rust, this would be an enum
+// Keeps track of the state of gameplay
+#[pyclass]
+pub struct State {
+    pre_flop: bool,
+    flop: bool,
+    post_flop: bool
+
+}
+
+#[pymethods]
+impl State {
+    // Once a state is instantiated, this will hold for each session of gameplay
+    // We default the state of the pre-flop to true, since this is a new session of Gameplay.
+    #[new]
+    fn new(&mut self) -> Self {
+        Self {
+            pre_flop: True,
+            flop: False,
+            post_flop: False,
+        }
+    }
+
+    fn play_flop(&mut self) -> Self {
+        Self {
+            pre_flop: False,
+            flop: True,
+            post_flop: False
+
+        }
+    }
+
+    fn play_postflop(&mut self) -> Self {
+        Self {
+            pre_flop: False,
+            flop: False,
+            post_flop: True
+
+        }
+    }
+
+}
+
+// Struct for managing the wagering state of the game
+#[pyclass]
+pub struct Wager {
+    ante_play: bool,
+    ante_amt: u32 // Can't bid negative
+    blinds_play: bool,
+    blinds_amt: u32,
+    play_wager: bool,
+    play_amt: u32,
+    trips_play: bool,
+    trips_amt: u32,
+    balance: i32 // Overall Balance can be negative
+}
+
+// Set wagering rules
+#[pymethods]
+
+
+
+// Base object for manipulating actions. 
 #[pyclass]
 pub struct Player {
+    name: String
     first_card: Card,
     second_card: Card,
+    wagers: Wager,
 }
+
+
+// What are the actions a player can do?
+#[pymethods]
+impl Player {
+    
+    // "Instantiate" a new player
+    #[new]
+    fn new(name_: String, first: String, second: String) -> Self {
+        Self {
+            name: name_,
+            first_card: first,
+            second_card: second,
+        }
+    }
+}
+
 
 /// A Python module implemented in Rust.
 #[pymodule]
