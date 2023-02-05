@@ -1,3 +1,6 @@
+from loguru import logger
+from typing import Tuple
+
 import random
 import ultimate_holdem
 
@@ -48,7 +51,7 @@ class Deck:
             self.deck = value
 
     @staticmethod
-    def deal_card(deck: list) -> (list, ultimate_holdem.Card):
+    def deal_card(deck: list) -> Tuple[list, ultimate_holdem.Card]:
         """
         Deal a number of cards from the deck
 
@@ -66,6 +69,29 @@ class Deck:
 
         return deck, dealt_card
 
-def play_ultimate():
-    "TODO: Implement Gameplay!"
-    return
+
+def play_ultimate() -> dict:
+    """
+    Play a game of Ultimate Texas HoldEm.
+    
+    Rounds include Pre-Flop, Flop and Post-Flop
+
+    """
+    # Instantiate deck for gameplay
+    deck = Deck()
+
+    # Instantiate Game Log
+    game_log = {"game": 1}
+
+    player_name = input("Enter your name: ")
+
+    first_card = Deck.deal_card(deck)
+    second_card = Deck.deal_card(deck)
+
+    wagers = ultimate_holdem.Wager(False, 0, False, 0, False, 0, False, 0, 0)
+
+    player = ultimate_holdem.Player(player_name, first_card, second_card, wagers)
+    print(player)
+
+
+    return game_log

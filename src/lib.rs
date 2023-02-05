@@ -47,6 +47,7 @@ pub fn build_face_cards() -> Vec<Card> {
 
 // Expose the base object to the Python interface. We'll be dealing with cards
 #[pyclass]
+#[derive(Clone, Debug)]
 pub struct Card {
     suit: String,
     value: String,
@@ -122,28 +123,28 @@ impl State {
     // Once a state is instantiated, this will hold for each session of gameplay
     // We default the state of the pre-flop to true, since this is a new session of Gameplay.
     #[new]
-    fn new(&mut self) -> Self {
+    fn new() -> Self {
         Self {
-            pre_flop: True,
-            flop: False,
-            post_flop: False,
+            pre_flop: true,
+            flop: false,
+            post_flop: false,
         }
     }
 
     fn play_flop(&mut self) -> Self {
         Self {
-            pre_flop: False,
-            flop: True,
-            post_flop: False
+            pre_flop: false,
+            flop: true,
+            post_flop: false
 
         }
     }
 
     fn play_postflop(&mut self) -> Self {
         Self {
-            pre_flop: False,
-            flop: False,
-            post_flop: True
+            pre_flop: false,
+            flop: false,
+            post_flop: true
 
         }
     }
@@ -152,9 +153,10 @@ impl State {
 
 // Struct for managing the wagering state of the game
 #[pyclass]
+#[derive(Clone, Debug)]
 pub struct Wager {
     ante_play: bool,
-    ante_amt: u32 // Can't bid negative
+    ante_amt: u32, // Can't bid negative
     blinds_play: bool,
     blinds_amt: u32,
     play_wager: bool,
@@ -164,15 +166,14 @@ pub struct Wager {
     balance: i32 // Overall Balance can be negative
 }
 
-// Set wagering rules
-#[pymethods]
-
-
+// // Set wagering rules
+// #[pymethods]
 
 // Base object for manipulating actions. 
 #[pyclass]
+#[derive(Clone, Debug)]
 pub struct Player {
-    name: String
+    name: String,
     first_card: Card,
     second_card: Card,
     wagers: Wager,
@@ -185,11 +186,12 @@ impl Player {
     
     // "Instantiate" a new player
     #[new]
-    fn new(name_: String, first: String, second: String) -> Self {
+    fn new(name_: String, first: Card, second: Card, wagers_: Wager) -> Self {
         Self {
             name: name_,
             first_card: first,
             second_card: second,
+            wagers: wagers_
         }
     }
 }
@@ -199,6 +201,9 @@ impl Player {
 #[pymodule]
 fn ultimate_holdem(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Card>()?;
+    m.add_class::<Player>()?;
+    m.add_class::<Wager>()?;
+    m.add_class::<State>()?;
     m.add_function(wrap_pyfunction!(build_number_cards, m)?)?;
     m.add_function(wrap_pyfunction!(build_face_cards, m)?)?;
     Ok(())
