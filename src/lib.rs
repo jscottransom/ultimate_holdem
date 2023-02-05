@@ -45,6 +45,17 @@ pub fn build_face_cards() -> Vec<Card> {
     cards
 }
 
+#[pyfunction]
+pub fn build_complete_deck() -> Vec<Card> {
+
+    let mut number_cards = build_number_cards();
+    let mut face_cards = build_face_cards();
+
+    number_cards.append(&mut face_cards);
+
+    number_cards
+}
+
 // Expose the base object to the Python interface. We'll be dealing with cards
 #[pyclass]
 #[derive(Clone, Debug)]
@@ -108,6 +119,46 @@ impl Card {
     }
 }
 
+
+
+// The Deck class object represents the initial interface for dealing with gameplay. Card objects
+// exist within the Deck and offer the player and dealer a variety of options.
+#[pyclass]
+#[derive(Clone, Debug)]
+pub struct Deck {
+    deck: Vec<Card>,
+}
+
+#[pymethods]
+impl Deck {
+   
+    // Constructor for the Deck class. We only need to construct the deck in it's base form. Other utilities
+    // from the Deck class will be called as needed.
+    #[new]
+    fn new(deck_: Vec<Card>) -> Self {
+        Self {
+            deck: deck_,
+        }
+    }
+
+    // Select a random card from the deck and remove that card from the deck
+    fn deal_card(&mut self) -> (Card, Vec<Card>) {
+
+        // Get a clone of the deck to operate on
+        let mut deck = self.deck.clone();
+
+        // We not only want to select a random card, we need to remove it from the deck.
+        // We'll do that by keeping track of the index of the randomly selected card, and removing that
+        // card by the given index.
+        let index = (rand::random::<f32>() * deck.len() as f32).floor() as usize;
+        let card = deck.remove( index );
+
+        (card, deck)
+
+    }
+        
+}
+
 // In pure Rust, this would be an enum
 // Keeps track of the state of gameplay
 #[pyclass]
@@ -167,7 +218,23 @@ pub struct Wager {
 }
 
 // // Set wagering rules
-// #[pymethods]
+#[pymethods]
+impl Wager {
+    #[new]
+    fn new(ante_play_: bool, ante_amt_: u32, blinds_play_: bool, blinds_amt_: u32, play_wager_: bool, play_amt_: u32, trips_play_: bool, trips_amt_: u32, balance_: i32) -> Self {
+        Self {
+            ante_play: ante_play_,
+            ante_amt: ante_amt_, // Can't bid negative
+            blinds_play: blinds_play_,
+            blinds_amt: blinds_amt_,
+            play_wager: play_wager_,
+            play_amt: play_amt_,
+            trips_play: trips_play_,
+            trips_amt: trips_amt_,
+            balance: balance_
+        }
+    }
+}
 
 // Base object for manipulating actions. 
 #[pyclass]
@@ -194,6 +261,11 @@ impl Player {
             wagers: wagers_
         }
     }
+
+     // Allows for printing to stdout
+     fn __repr__(&self) -> String {
+        format!("Player Name: {}, First Card: {:?}, Second Card: {:?}", self.name, self.first_card, self.second_card)
+    }
 }
 
 
@@ -204,7 +276,9 @@ fn ultimate_holdem(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Player>()?;
     m.add_class::<Wager>()?;
     m.add_class::<State>()?;
+    m.add_class::<Deck>()?;
     m.add_function(wrap_pyfunction!(build_number_cards, m)?)?;
     m.add_function(wrap_pyfunction!(build_face_cards, m)?)?;
+    m.add_function(wrap_pyfunction!(build_complete_deck, m)?)?;
     Ok(())
 }
