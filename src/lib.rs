@@ -47,7 +47,6 @@ pub fn build_face_cards() -> Vec<Card> {
 
 #[pyfunction]
 pub fn build_complete_deck() -> Vec<Card> {
-
     let mut number_cards = build_number_cards();
     let mut face_cards = build_face_cards();
 
@@ -119,8 +118,6 @@ impl Card {
     }
 }
 
-
-
 // The Deck class object represents the initial interface for dealing with gameplay. Card objects
 // exist within the Deck and offer the player and dealer a variety of options.
 #[pyclass]
@@ -131,19 +128,15 @@ pub struct Deck {
 
 #[pymethods]
 impl Deck {
-   
     // Constructor for the Deck class. We only need to construct the deck in it's base form. Other utilities
     // from the Deck class will be called as needed.
     #[new]
     fn new(deck_: Vec<Card>) -> Self {
-        Self {
-            deck: deck_,
-        }
+        Self { deck: deck_ }
     }
 
     // Select a random card from the deck and remove that card from the deck
     fn deal_card(&mut self) -> (Card, Vec<Card>) {
-
         // Get a clone of the deck to operate on
         let mut deck = self.deck.clone();
 
@@ -151,12 +144,10 @@ impl Deck {
         // We'll do that by keeping track of the index of the randomly selected card, and removing that
         // card by the given index.
         let index = (rand::random::<f32>() * deck.len() as f32).floor() as usize;
-        let card = deck.remove( index );
+        let card = deck.remove(index);
 
         (card, deck)
-
     }
-        
 }
 
 // In pure Rust, this would be an enum
@@ -165,8 +156,7 @@ impl Deck {
 pub struct State {
     pre_flop: bool,
     flop: bool,
-    post_flop: bool
-
+    post_flop: bool,
 }
 
 #[pymethods]
@@ -186,8 +176,7 @@ impl State {
         Self {
             pre_flop: false,
             flop: true,
-            post_flop: false
-
+            post_flop: false,
         }
     }
 
@@ -195,11 +184,9 @@ impl State {
         Self {
             pre_flop: false,
             flop: false,
-            post_flop: true
-
+            post_flop: true,
         }
     }
-
 }
 
 // Struct for managing the wagering state of the game
@@ -214,14 +201,24 @@ pub struct Wager {
     play_amt: u32,
     trips_play: bool,
     trips_amt: u32,
-    balance: i32 // Overall Balance can be negative
+    balance: i32, // Overall Balance can be negative
 }
 
 // // Set wagering rules
 #[pymethods]
 impl Wager {
     #[new]
-    fn new(ante_play_: bool, ante_amt_: u32, blinds_play_: bool, blinds_amt_: u32, play_wager_: bool, play_amt_: u32, trips_play_: bool, trips_amt_: u32, balance_: i32) -> Self {
+    fn new(
+        ante_play_: bool,
+        ante_amt_: u32,
+        blinds_play_: bool,
+        blinds_amt_: u32,
+        play_wager_: bool,
+        play_amt_: u32,
+        trips_play_: bool,
+        trips_amt_: u32,
+        balance_: i32,
+    ) -> Self {
         Self {
             ante_play: ante_play_,
             ante_amt: ante_amt_, // Can't bid negative
@@ -231,12 +228,12 @@ impl Wager {
             play_amt: play_amt_,
             trips_play: trips_play_,
             trips_amt: trips_amt_,
-            balance: balance_
+            balance: balance_,
         }
     }
 }
 
-// Base object for manipulating actions. 
+// Base object for manipulating actions.
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct Player {
@@ -246,11 +243,9 @@ pub struct Player {
     wagers: Wager,
 }
 
-
 // What are the actions a player can do?
 #[pymethods]
 impl Player {
-    
     // "Instantiate" a new player
     #[new]
     fn new(name_: String, first: Card, second: Card, wagers_: Wager) -> Self {
@@ -258,16 +253,111 @@ impl Player {
             name: name_,
             first_card: first,
             second_card: second,
-            wagers: wagers_
+            wagers: wagers_,
         }
     }
 
-     // Allows for printing to stdout
-     fn __repr__(&self) -> String {
-        format!("Player Name: {}, First Card: {:?}, Second Card: {:?}", self.name, self.first_card, self.second_card)
+    // Allows for printing to stdout
+    fn __repr__(&self) -> String {
+        format!(
+            "Player Name: {}, First Card: {:?}, Second Card: {:?}",
+            self.name, self.first_card, self.second_card
+        )
     }
 }
 
+// May remove this later, but for now, will determine what "type"
+#[pyclass]
+pub struct CardType {
+    card_value: String,
+    card_suit: String,
+}
+
+#[pymethods]
+impl CardType {
+    // py03 doesn't allow for instantiation in the "Pythonic" way
+    // but it does offer a #[new] macro that essentially serves the same purpose
+    #[new]
+    fn new(card_value_: String, card_suit_: String) -> Self {
+        Self {
+            card_value: card_value_,
+            card_suit: card_suit_,
+        }
+    }
+}
+
+// Class used to obtain Final Hand Values
+#[pyclass]
+pub struct Hand {
+    hand: Vec<Card>,
+}
+
+#[pymethods]
+impl Hand {
+    // Constructor for the Hand class.
+    #[new]
+    fn new(dealt_hand: Vec<Card>) -> Self {
+        Self { hand: dealt_hand }
+    }
+
+    // Obtain the card type for a given card in the hand
+    fn get_card_types(&self) -> Vec<CardType> {
+        card_types = Vec::new();
+        let high_cards = vec![
+            "jack".to_string(),
+            "queen".to_string(),
+            "king".to_string(),
+            "ace".to_string(),
+        ];
+
+        for card in self.hand {
+            let value = match card.value.as_str() {
+                "2" => "2".parse.unwrap(),
+                "3" => "3".parse.unwrap(),
+                "4" => "4".parse.unwrap(),
+                "5" => "5".parse.unwrap(),
+                "6" => "6".parse.unwrap(),
+                "7" => "7".parse.unwrap(),
+                "8" => "8".parse.unwrap(),
+                "9" => "9".parse.unwrap(),
+                "10" => "10".parse.unwrap(),
+                "Jack" => "jack".to_string(),
+                "Queen" => "queen".to_string(),
+                "King" => "king".to_string(),
+                "Ace" => "ace".to_string(),
+                &_ => "".to_string(),
+            };
+
+            let value_type = match value.as_str() {
+                "jack" => "high_card".to_string(),
+                "queen" => "high_card".to_string(),
+                "king" => "high_card".to_string(),
+                "ace" => "high_card".to_string(),
+                _ => "number_card".to_string,
+            };
+
+            // We need to deal with Strings allocated on the heap (size unknown at compile time).
+            // So to apply operations, it makes sense to conver to a string slice, then re convert to a
+            // String type.
+            let suit = card.suit.as_str().to_lowercase().to_string();
+
+            // Construct a CardType Object
+            let card_type = CardType {
+                card_value: value_type,
+                card_suit: suit,
+            };
+
+            card_types.push(card_type);
+        }
+
+        // Return a vector of CardTypes
+        card_types
+    }
+
+    fn get_hand_value(&self) -> String {
+        todo!
+    }
+}
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -277,6 +367,7 @@ fn ultimate_holdem(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Wager>()?;
     m.add_class::<State>()?;
     m.add_class::<Deck>()?;
+    m.add_class::<Hand>()?;
     m.add_function(wrap_pyfunction!(build_number_cards, m)?)?;
     m.add_function(wrap_pyfunction!(build_face_cards, m)?)?;
     m.add_function(wrap_pyfunction!(build_complete_deck, m)?)?;
